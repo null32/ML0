@@ -136,6 +136,42 @@ demo <- function(algo) {
   }
 }
 
+proof <- function() {
+  f1 <- function(x) {
+    2*x - 2
+  }
+  a1 <- seq(0, 10, 0.5)
+  b1 <- unlist(lapply(a1, f1))
+  
+  f2 <- function(x) {
+    2*x + 4
+  }
+  a2 <- seq(0, 10, 1)
+  b2 <- unlist(lapply(a2, f2))
+  
+  colors <- factor(c(rep("red", 21), rep("green", 11)))
+  cn <- levels(colors)
+  df <- data.frame(x=c(a1, a2), y=c(b1, b2), Species=colors)
+  plot(df[1:2], pch=21, bg=cn[df$Species], col=cn[df$Species])
+  
+  for (i in seq(0, 10, 0.25)) {
+    for (j in seq(-4, 6, 1)) {
+      p <- c(i, j + 2*i)
+      res1 <- knn(df, p)
+      res2 <- kwnn(df, p, q=c(0.5))
+      if (res1 != res2) {
+        points(p[1], p[2], pch=20, col="blue")
+      }
+      else
+      {
+        points(p[1], p[2], pch=21, col=res1)
+      }
+    }
+  }
+  
+  points(df[1:2], pch=21, bg=cn[df$Species], col=cn[df$Species])
+}
+
 #demo(knn)
 #demo(kwnn)
 
@@ -154,5 +190,7 @@ demo <- function(algo) {
 #res <- loocv2(iris[3:5], kwnn, q=seq(0.05, 1, 0.05))
 #print(res)
 
-res <- looFromW(iris[3:5], kwnn, q=seq(0.1, 1, 0.05))
-print(res)
+#res <- looFromW(iris[3:5], kwnn, q=seq(0.1, 1, 0.05))
+#print(res)
+
+proof()
