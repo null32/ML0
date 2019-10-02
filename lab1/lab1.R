@@ -59,7 +59,7 @@ looFromK <- function(dat, algo, k) {
 }
 
 # kwNN algo
-kwnn <- function(dat, p, k=6, q = c(0.8)) {
+kwnn <- function(dat, p, k=c(6), q = c(0.8)) {
   # calculate distances to each node in data
   dists <- vector("list", length(dat[[1]]))
   for (i in 1:length(dat[[1]])) {
@@ -71,35 +71,43 @@ kwnn <- function(dat, p, k=6, q = c(0.8)) {
   # sort data by distance
   dat <- dat[order(dat$Distance),]
   
-  res <- list()
-  # take first k values from data
-  datK <- head(dat, k)
-  
-  freq <- as.list(rep(0, length(levels(dat$Species))))
-  names(freq) = levels(dat$Species)
-  
-  for (j in seq(length(q))) {
-    for (l in seq(k)) {
-      e <- datK[l,]
-      freq[[e$Species]] <- freq[[e$Species]] + q[j] ^ l
+  lk <- length(k)
+  lq <- length(q)
+  # result matrix with k values as rows
+  # and q values as columns
+  # matrix values are classification result 
+  res <- array(0, c(lq, lk))
+  for (iq in seq(lq)) {
+    w <- q[iq]
+    
+    for (ik in seq(lk)) {
+      kv <- k[ik]
+      # how much p is close to each class
+      freq <- as.list(rep(0, length(levels(dat$Species))))
+      names(freq) = levels(dat$Species)
+      
+      for (j in seq(kv)) {
+        e <- dat[j,]
+        freq[[e$Species]] <- freq[[e$Species]] + w ^ j
+      }
+
+      res[iq, ik] <- names(sort(unlist(freq), decreasing = TRUE))[1]
     }
-    # most occuring group  
-    res[j] <- names(sort(unlist(freq), decreasing = TRUE))[1]
   }
   
-  return (unlist(res))
+  return (res)
 }
 
 # Perform LOOCV on 'algo' with 'dat' 
-loocv2 <- function(dat, algo, q) {
+loocv2 <- function(dat, algo, k, q) {
   l <- length(dat[[1]])
-  correct <- rep(0, length(q))
+  correct <- array(0, c(length(q), length(k)))
   
   for (i in seq(l)) {
     trainData <- dat[-i, ]
     control <- dat[i, ]
     
-    res <- algo(trainData, control[1:2], q=q)
+    res <- algo(trainData, control[1:2], k=k, q=q)
     correct <- correct + (res != control$Species)
   }
   
@@ -107,14 +115,30 @@ loocv2 <- function(dat, algo, q) {
 }
 
 # plot LOO(k)
-looFromW <- function(dat, algo, q) {
-  res <- loocv2(dat, algo, q)
+looFromW <- function(dat, algo, k, q) {
+  res <- loocv2(dat, algo, k, q)
   print(res)
-  lfromk <- data.frame("q"=q, "LOO"=res)
-  plot(lfromk, type="l")
+  
+  lk <- length(k)
+  lq <- length(q)
+  kq <- array(0, lk*lq)
+  val <- array(0, lk*lq)
+  
+  for (i in seq(lk)) {
+    for (j in seq(lq)) {
+      kq[(i-1)*lq +j] <- k[i] + q[j]
+      val[(i-1)*lq +j] <- res[j,i]
+    }
+  }
+  
+  lfromkq <- data.frame("qk"=kq, "LOO"=val,
+                        "k"=unlist(lapply(k, function(x){rep(x, lq)})),
+                        "q"=rep(q, lk))
+  print(lfromkq)
+  plot(lfromkq[1:2], type="l")
   
   # best k with lowest Q
-  m = lfromk[which.min(lfromk$LOO),]
+  m = lfromkq[which.min(lfromkq$LOO),]
   points(m, pch=21, bg="green")
   
   return (m)
@@ -187,10 +211,10 @@ proof <- function() {
 #res <- kwnn(iris[3:5], c(5, 1.5), w=c(0.5, 0.6))
 #print(res)
 
-#res <- loocv2(iris[3:5], kwnn, q=seq(0.05, 1, 0.05))
+#res <- loocv2(iris[3:5], kwnn, k=5:10, q=seq(0.05, 1, 0.05))
 #print(res)
 
-#res <- looFromW(iris[3:5], kwnn, q=seq(0.1, 1, 0.05))
+#res <- looFromW(iris[3:5], kwnn, k=5:10, q=seq(0.1, 1, 0.05))
 #print(res)
 
-proof()
+#proof()
