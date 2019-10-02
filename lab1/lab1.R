@@ -49,17 +49,19 @@ loocv1 <- function(dat, algo, k) {
 looFromK <- function(dat, algo, k) {
   res <- loocv1(dat, algo, k)
   lfromk <- data.frame("k"=k, "LOO"=res)
-  plot(lfromk, type="l")
+  plot(lfromk, type="l", main="График зависимости LOO(k)")
   
   # best k with lowest Q
   m = lfromk[which.min(lfromk$LOO),]
   points(m, pch=21, bg="green")
   
+  text(m[["k"]], m[["LOO"]], adj=c(0,-1), sprintf("(%i; %.3f)", m[["k"]], m[["LOO"]]))
+  
   return (m)
 }
 
 # kwNN algo
-kwnn <- function(dat, p, k=c(6), q = c(0.8)) {
+kwnn <- function(dat, p, k=c(6), q = c(1)) {
   # calculate distances to each node in data
   dists <- vector("list", length(dat[[1]]))
   for (i in 1:length(dat[[1]])) {
@@ -135,21 +137,23 @@ looFromW <- function(dat, algo, k, q) {
                         "k"=unlist(lapply(k, function(x){rep(x, lq)})),
                         "q"=rep(q, lk))
   print(lfromkq)
-  plot(lfromkq[1:2], type="l")
+  plot(lfromkq[1:2], type="l", main="График зависимости LOO(k, q)")
   
   # best k with lowest Q
   m = lfromkq[which.min(lfromkq$LOO),]
   points(m, pch=21, bg="green")
   
+  text(m[["qk"]], m[["LOO"]], adj=c(0,-1), sprintf("(%i %.2f; %.3f)", m[["k"]], m[["q"]], m[["LOO"]]))
+  
   return (m)
 }
 
 # example of usage
-demo <- function(algo) {
+demo <- function(algo, title) {
   # get data and plot it
   dat <- iris[3:5]
   colors <- c("setosa" = "red", "versicolor" = "green", "virginica" = "blue")
-  plot(dat[1:2], pch = 21, col = colors[dat$Species], bg = colors[dat$Species])
+  plot(dat[1:2], pch = 21, col = colors[dat$Species], bg = colors[dat$Species], main=title)
   
   # classification map
   for (i in seq(1.0, 7.0, 0.1)) {
@@ -158,6 +162,8 @@ demo <- function(algo) {
       points(i, j, pch = 21, col = colors[cl])
     }
   }
+  
+  points(dat[1:2], pch = 21, col = colors[dat$Species], bg = colors[dat$Species], main=title)
 }
 
 proof <- function() {
@@ -196,8 +202,8 @@ proof <- function() {
   points(df[1:2], pch=21, bg=cn[df$Species], col=cn[df$Species])
 }
 
-#demo(knn)
-#demo(kwnn)
+#demo(knn, "Карта классификации kNN")
+demo(kwnn, "Карта классификации kwNN")
 
 #res <- knn(iris[3:5], c(5, 1.5))
 #print(res)

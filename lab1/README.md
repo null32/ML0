@@ -2,9 +2,10 @@
 ## Алгоритм kNN
 **Алгоритм kNN** - метрический алгоритм классификации, основанный на оценивании сходства объектов. Классифицируемый объект относится к тому классу, которому принадлежат ближайшие к нему объекты обучающей выборки.
 
-### Формула алгоритма kNN выглядит следующим образом
+### Формула алгоритма kNN выглядит следующим образом:
 ![Формула](knntex.png)\
-где *k* - параметр
+где **y<sup>i</sup>** отсортированы по расстоянию относительно классифицируемого объекта,\
+а **k** -- параметр, который определяет, сколько объектов будет использованно для классификации
 
 ### Реализация алгоритма на языке R
 ```r
@@ -44,11 +45,11 @@ knn <- function(dat, p, k = c(6)) {
 
 ### Формула алгоритма kNN выглядит следующим образом
 ![Формула](kwnntex.png)\
-где **w(i) = q^i** - геометрическая прогрессия с параметром q
+где **w(i)** -- функция веса, которая показывает насколько сильно *i*-ый объект влияет на пренадлежность классифицируемого объекта к классу *u*; функция представляет собой геометрическую прогрессию с параметром *q* из диапозона *[0; 1]* (например: **w(i) = q^i**).
 
 ### Реализация алгоритма на языке R
 ```r
-kwnn <- function(dat, p, k=6, q = c(0.8)) {
+kwnn <- function(dat, p, k=c(6), q = c(0.8)) {
   # calculate distances to each node in data
   dists <- vector("list", length(dat[[1]]))
   for (i in 1:length(dat[[1]])) {
@@ -60,27 +61,36 @@ kwnn <- function(dat, p, k=6, q = c(0.8)) {
   # sort data by distance
   dat <- dat[order(dat$Distance),]
   
-  res <- list()
-  # take first k values from data
-  datK <- head(dat, k)
-  
-  freq <- as.list(rep(0, length(levels(dat$Species))))
-  names(freq) = levels(dat$Species)
-  
-  for (j in seq(length(q))) {
-    for (l in seq(k)) {
-      e <- datK[l,]
-      freq[[e$Species]] <- freq[[e$Species]] + q[j] ^ l
+  lk <- length(k)
+  lq <- length(q)
+  # result matrix with k values as rows
+  # and q values as columns
+  # matrix values are classification result 
+  res <- array(0, c(lq, lk))
+  for (iq in seq(lq)) {
+    w <- q[iq]
+    
+    for (ik in seq(lk)) {
+      kv <- k[ik]
+      # how much p is close to each class
+      freq <- as.list(rep(0, length(levels(dat$Species))))
+      names(freq) = levels(dat$Species)
+      
+      for (j in seq(kv)) {
+        e <- dat[j,]
+        freq[[e$Species]] <- freq[[e$Species]] + w ^ j
+      }
+
+      res[iq, ik] <- names(sort(unlist(freq), decreasing = TRUE))[1]
     }
-    # most occuring group  
-    res[j] <- names(sort(unlist(freq), decreasing = TRUE))[1]
   }
   
-  return (unlist(res))
+  return (res)
 }
 ```
-### Выберем оптимальноё *q*, воспользовавшись критерием скользящего контроля LOO
+### Выберем оптимальные *q* и *k*, воспользовавшись критерием скользящего контроля LOO
+Так как *k* является целым числом, а *q* находится в диапозоне [0; 1], то будем использовать *q+k* по одной из осей.
 ![График LOO(q)](LOOfromq.png)
-#### Таким образом оптимальное k=0.8
-## Карта классификации kNN
-![Карта классификации kNN](kwnn608map.png)
+#### Таким образом оптимальное *k*=6, а *q*=1
+## Карта классификации kwNN
+![Карта классификации kwNN](kwnn608map.png)
