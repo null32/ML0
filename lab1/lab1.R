@@ -167,30 +167,32 @@ demo <- function(algo, title) {
 }
 
 proof <- function() {
-  f1 <- function(x) {
-    2*x - 2
-  }
-  a1 <- seq(0, 10, 0.5)
-  b1 <- unlist(lapply(a1, f1))
+  a1 <- seq(0, 5, 0.5)
+  b1 <- unlist(lapply(a1, function(x) { 2*x - 2 }))
+  a2 <- seq(0.25, 5, 0.5)
+  b2 <- unlist(lapply(a2, function(x) { 2*x - 3 }))
+  a <- c(a1, a2)
+  b <- c(b1, b2)
   
-  f2 <- function(x) {
-    2*x + 4
-  }
-  a2 <- seq(0, 10, 1)
-  b2 <- unlist(lapply(a2, f2))
+  c1 <- seq(0, 5, 1)
+  d1 <- unlist(lapply(c1, function(x) { 2*x + 4 }))
+  c2 <- seq(0.5, 5, 1)
+  d2 <- unlist(lapply(c2, function(x) { 2*x + 3 }))
+  a <- c(a, c1, c2)
+  b <- c(b, d1, d2)
   
   colors <- factor(c(rep("red", 21), rep("green", 11)))
   cn <- levels(colors)
-  df <- data.frame(x=c(a1, a2), y=c(b1, b2), Species=colors)
+  df <- data.frame(x=a, y=b, Species=colors)
   plot(df[1:2], pch=21, bg=cn[df$Species], col=cn[df$Species])
-  
-  for (i in seq(0, 10, 0.25)) {
-    for (j in seq(-4, 6, 1)) {
+
+  for (i in seq(0, 5, 0.25)) {
+    for (j in seq(-4, 5, 1)) {
       p <- c(i, j + 2*i)
       res1 <- knn(df, p)
       res2 <- kwnn(df, p, q=c(0.5))
       if (res1 != res2) {
-        points(p[1], p[2], pch=20, col="blue")
+        points(p[1], p[2], pch=25, col=res2, bg=res2)
       }
       else
       {
@@ -203,7 +205,7 @@ proof <- function() {
 }
 
 #demo(knn, "Карта классификации kNN")
-demo(kwnn, "Карта классификации kwNN")
+#demo(kwnn, "Карта классификации kwNN")
 
 #res <- knn(iris[3:5], c(5, 1.5))
 #print(res)
@@ -223,4 +225,4 @@ demo(kwnn, "Карта классификации kwNN")
 #res <- looFromW(iris[3:5], kwnn, k=5:10, q=seq(0.1, 1, 0.05))
 #print(res)
 
-#proof()
+proof()
