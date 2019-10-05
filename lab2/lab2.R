@@ -13,6 +13,7 @@ core1 <- function(r) {
   return ((3/4) * (1 - r*r))
 }
 # Квартическое
+# h=0.35 LOO=0.04
 core2 <- function(r) {
   if (abs(r) > 1) {
     return (0)
@@ -20,6 +21,7 @@ core2 <- function(r) {
   return ((15/16) * (1 - r*r)^2)
 }
 # Треугольное
+# h=0.35 LOO=0.04
 core3 <- function(r) {
   if (abs(r) > 1) {
     return (0)
@@ -27,11 +29,13 @@ core3 <- function(r) {
   return (1 - abs(r))
 }
 # Гауссовское
+# h=0.1 LOO=0.04
 core4 <- function(r) {
   (2*pi)^0.5 * exp(-0.5 * r*r)
 }
 # Прямоугольное
-core4 <- function(r) {
+# h=0.35 LOO=0.04
+core5 <- function(r) {
   if (abs(r) > 1) {
     return (0)
   }
@@ -40,7 +44,7 @@ core4 <- function(r) {
 
 
 # kNN algo
-parwin <- function(dat, p, core=core1, h = c(1), ...) {
+parwin <- function(dat, p, core=core1, h = c(0.35), ...) {
   ld <- length(dat[[1]])
   lh <- length(h)
   # calculate distances to each node in data
@@ -129,10 +133,10 @@ demo <- function(algo, title="Unknown plot") {
 }
 
 
-#demo(parwin)
+demo(parwin, "Карта классификации")
 
 #res <- loocv1(iris[3:5], parwin, 2, h=c(0.5, 1))
 #print(res)
 
-res <- looFromH(iris[3:5], parwin, seq(0.1, 4, 0.05), "Ядро Квартическое", core2)
-print(res)
+#res <- looFromH(iris[3:5], parwin, seq(0.1, 4, 0.05), "Ядро Прямоугольное", core5)
+#print(res)
