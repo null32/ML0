@@ -43,7 +43,7 @@ core5 <- function(r) {
 }
 
 
-# kNN algo
+# ParWin algo
 parwin <- function(dat, p, core=core1, h = c(0.35), ...) {
   ld <- length(dat[[1]])
   lh <- length(h)
@@ -64,6 +64,7 @@ parwin <- function(dat, p, core=core1, h = c(0.35), ...) {
     # how much p is close to each class
     freq <- as.list(rep(0, length(levels(dat$Species))))
     names(freq) = levels(dat$Species)
+    
     for (j in seq(ld)) {
       vd <- dat[j,]
       
@@ -71,6 +72,7 @@ parwin <- function(dat, p, core=core1, h = c(0.35), ...) {
     }
     
     freq <- unlist(freq)
+    # if we didn't get into any windows then no class
     if (max(freq) == 0) {
       res[i] <- ""
     }
