@@ -117,7 +117,7 @@ looFromH <- function(dat, algo, h, title, core) {
 }
 
 # example of usage
-demo <- function(algo, title="Unknown plot") {
+demo <- function(algo, title="Unknown plot", core=core1) {
   # get data and plot it
   dat <- iris[3:5]
   colors <- c("setosa" = "red", "versicolor" = "green", "virginica" = "blue")
@@ -126,7 +126,7 @@ demo <- function(algo, title="Unknown plot") {
   # classification map
   for (i in seq(1.0, 7.0, 0.1)) {
     for (j in seq(0.1, 2.5, 0.1)) {
-      cl <- algo(dat, c(i, j))
+      cl <- algo(dat, c(i, j), core=core)
       points(i, j, pch = 21, col = colors[cl])
     }
   }
@@ -135,7 +135,7 @@ demo <- function(algo, title="Unknown plot") {
 }
 
 
-demo(parwin, "Карта классификации")
+demo(parwin, "Карта классификации (ядро Прямоугольное)", core5)
 
 #res <- loocv1(iris[3:5], parwin, 2, h=c(0.5, 1))
 #print(res)
