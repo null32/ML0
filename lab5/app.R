@@ -49,14 +49,7 @@ ui <- fluidPage(
       ),
       sliderInput(
         inputId = "b",
-        label = "Элемент [1, 2]",
-        min = 0,
-        max = 1,
-        value = 0
-      ),
-      sliderInput(
-        inputId = "c",
-        label = "Элемент [2, 1]",
+        label = "Элемент [1, 2] и [2, 1]",
         min = 0,
         max = 1,
         value = 0
@@ -82,7 +75,7 @@ ui <- fluidPage(
 server <- function(input, output) {
   output$plot <- renderPlot({
     par(pty="s")
-    m <- matrix(c(input$a, input$b, input$c, input$d), 2, 2)
+    m <- matrix(c(input$a, input$b, input$b, input$d), 2, 2)
     
     err <- drawLines(c(0, 0), m)
     if (!is.null(err)) {
