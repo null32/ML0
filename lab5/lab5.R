@@ -19,15 +19,21 @@ drawLines <- function(center, cv) {
     1 / (2*pi*sqrt(det)) * exp(-0.5 * (x^2*A + y^2*B + x*y*C + x*D + y*E + F))
   }
   
-  X <- seq(-2, 2, 0.1)
-  Y <- seq(-2, 2, 0.1)
+  X <- seq(-2-0.1, 2+0.1, 0.1)
+  Y <- seq(-2-0.1, 2+0.1, 0.1)
   Z <- outer(X, Y, func)
   
   contour(X, Y, Z)
 }
 
+par(pty="s")
+#par(pty="m")
+
 #n = 2
 #cent = (0; 0)
 #cv = 1, 0
 #     0, 1
+#drawLines(c(0, 0), matrix(c(1, 0, 0, 0.4), 2, 2))
 drawLines(c(0, 0), matrix(c(1, 0, 0, 1), 2, 2))
+#drawLines(c(0, 0), matrix(c(1, 1, 0, 1), 2, 2))
+
