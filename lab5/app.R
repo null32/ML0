@@ -27,8 +27,8 @@ drawLines <- function(center, cv) {
     1 / (2*pi*sqrt(det)) * exp(-0.5 * (x^2*A + y^2*B + x*y*C + x*D + y*E + F))
   }
   
-  X <- seq(-2-0.1, 2+0.1, 0.1)
-  Y <- seq(-2-0.1, 2+0.1, 0.1)
+  X <- seq(-8, 8, len=100)
+  Y <- seq(-8, 8, len=100)
   Z <- outer(X, Y, func)
   
   contour(X, Y, Z)
@@ -40,33 +40,36 @@ ui <- fluidPage(
   sidebarLayout(
     # input
     sidebarPanel(
+      h3("Рассмотрим ковариационную матрицу для двумерного случая"),
       sliderInput(
         inputId = "a",
         label = "Элемент [1, 1]",
         min = 0,
-        max = 1,
-        value = 1
+        max = 10,
+        value = 10
       ),
       sliderInput(
         inputId = "b",
         label = "Элемент [1, 2] и [2, 1]",
         min = 0,
-        max = 1,
+        max = 10,
         value = 0
       ),
       sliderInput(
         inputId = "d",
         label = "Элемент [2, 2]",
         min = 0,
-        max = 1,
-        value = 1
+        max = 10,
+        value = 4
       )
     ),
     # output
     mainPanel(
       textOutput(outputId = "errMsg"),
       plotOutput(
-        outputId = "plot"
+        outputId = "plot",
+        width = "500px",
+        height = "500px"
       )
     )
   )
@@ -74,7 +77,7 @@ ui <- fluidPage(
 
 server <- function(input, output) {
   output$plot <- renderPlot({
-    par(pty="s")
+    #par(pty="s")
     m <- matrix(c(input$a, input$b, input$b, input$d), 2, 2)
     
     err <- drawLines(c(0, 0), m)
