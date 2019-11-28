@@ -69,7 +69,7 @@ y <- seq(plotymin, plotymax, l/50)
 for (i in x) {
   for (j in y) {
     res1 <- naiveBayes(c(i, j), m1, d1, 0.5, 1)
-    res2 <- naiveBayes(c(i, j), m2, d2, 0.5, 1)
+    res2 <- naiveBayes(c(i, j), m2, d2, 0.5, 1000)
     color <- ifelse(res1 > res2, colors[1], colors[2])
     
     #cat(res1, " ", res2, " ", color, "\n")

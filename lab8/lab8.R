@@ -4,7 +4,7 @@ n <- 300
 sigma1 <- matrix(c(1, 0, 0, 10), 2, 2)
 
 mu1 <- c(0, 10)
-mu2 <- c(10, 0)
+mu2 <- c(2, 0)
 
 xc1 <- mvrnorm(n=n, mu = mu1, Sigma = sigma1)
 xc2 <- mvrnorm(n=n, mu = mu2, Sigma = sigma1)
@@ -62,6 +62,18 @@ getFunc <- function(sigma1, mu1, mu2) {
   return(func)
 }
 
+# расстояние Махалонобиса
+# риск
+getRisk <- function(mu1, mu2, sigma) {
+  mah <- (mu1 - mu2) %*% solve(sigma) %*% t(mu1 - mu2)
+  # print(mah)
+  mah <- mah * -0.5
+  res <- gausian(mah, 0, 1)
+}
+gausian <- function(x, M, D){
+  return( (1/(D*sqrt(2*pi))) * exp(-1 * ((x - M)^2)/(2*D^2)) )
+}
+
 mu1 <- estimateMu(xc1)
 mu2 <- estimateMu(xc2)
 sigma1 <- estimateSigma(xc1, mu1, xc2, mu2)
@@ -71,3 +83,6 @@ func <- getFunc(sigma1, mu1, mu2)
 x <- seq(plotxmin-5, plotxmax+5, len = 100)
 lines(x, func(x), lwd = 2.5, type="l")
 lines(c(mu1[1], mu2[1]), c(mu1[2], mu2[2]), col = 'gray', lwd = 2)
+
+risk <- getRisk(mu1, mu2, sigma1)
+cat("risk:", risk, "\n")

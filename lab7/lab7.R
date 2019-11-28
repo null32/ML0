@@ -41,7 +41,7 @@ estimateSigma <- function(xs, mu) {
   return(res/(rows - 1))
 }
 
-getFunc <- function(sigma1, mu1, sigma2, mu2) {
+getFunc <- function(sigma1, mu1, sigma2, mu2, lambda) {
   d1 <- det(sigma1)
   d2 <- det(sigma2)
   invs1 <- solve(sigma1)
@@ -64,6 +64,14 @@ getFunc <- function(sigma1, mu1, sigma2, mu2) {
   return(func)
 }
 
+getConst <- function(x1, x2, l1, l2) {
+  n1 <- dim(x1)[1]
+  n2 <- dim(x2)[1]
+  p1 <- n1 / (n1+n2)
+  p2 <- n2 / (n1+n2)
+  return( log((l2*p2)/(l1*p1)) )
+}
+
 mu1 <- estimateMu(xc1)
 mu2 <- estimateMu(xc2)
 sigma1 <- estimateSigma(xc1, mu1)
@@ -74,4 +82,4 @@ func <- getFunc(sigma1, mu1, sigma2, mu2)
 x <- seq(plotxmin-5, plotxmax+5, len = 100)
 y <- seq(plotymin-5, plotymax+5, len = 100)
 z <- outer(x, y, func)
-contour(x, y, z, levels = 0, add = TRUE, drawlabels = TRUE, lwd = 2.5)
+contour(x, y, z, levels = getConst(xc1, xc2, 1, 10), add = TRUE, drawlabels = TRUE, lwd = 2.5, labels = FALSE)
