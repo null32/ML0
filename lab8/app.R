@@ -1,8 +1,6 @@
 library(shiny)
 library(MASS)
 
-library(shiny)
-
 ui <- fluidPage(
   tags$head(
     tags$style(HTML("
@@ -167,18 +165,19 @@ estimateSigma <- function(xs1, mu1, xs2, mu2) {
   return(res/(rows1 + rows2 + 2))
 }
 
-getFunc <- function(sigma, mu1, mu2) {
-  d <- det(sigma)
-  invs <- solve(sigma)
+getFunc <- function(sigma1, mu1, mu2) {
+  d1 <- det(sigma1)
+  invs1 <- solve(sigma1)
   
-  b <- invs %*% t(mu1) - invs %*% t(mu2)
+  b <- invs1 %*% t(mu1 - mu2)
   
-  D <- -2 * b[1, 1] # x
-  E <- -2 * b[2, 1] # y
-  G <- c(mu1 %*% invs %*% t(mu1) - mu2 %*% invs %*% t(mu2))
+  D <- b[1, 1] # x
+  E <- b[2, 1] # y
+  mu <- (mu1 + mu2)
+  G <- c(mu %*% b) / 2
   
-  func <- function(x, y) {
-    x*D + y*E + G
+  func <- function(x) {
+    -x*D/E + G/E
   }
   
   return(func)
@@ -209,10 +208,6 @@ server <- function(input, output) {
     
     func <- getFunc(sigma1, mu1, mu2)
     
-    x <- seq(plotxmin-5, plotxmax+5, len = 100)
-    y <- seq(plotymin-5, plotymax+5, len = 100)
-    z <- outer(x, y, func)
-    
     # set proper plot size
     plot(c(), type="n", xlab = "x", ylab = "y", xlim=c(plotxmin, plotxmax), ylim = c(plotymin, plotymax))
     
@@ -221,8 +216,10 @@ server <- function(input, output) {
     points(xc1, pch=21, col=colors[1], bg=colors[1])
     points(xc2, pch=21, col=colors[2], bg=colors[2])
     
-    # draw line
-    contour(x, y, z, levels = 0, add = TRUE, drawlabels = TRUE, lwd = 2.5)
+    #draw lines
+    x <- seq(plotxmin-5, plotxmax+5, len = 100)
+    lines(x, func(x), lwd = 2.5, type="l")
+    lines(c(mu1i[1], mu2i[1]), c(mu1i[2], mu2i[2]), col = 'gray', lwd = 2)
     
     # fill table
     output$sigma1ia = renderText(sigma1i[1,1])
