@@ -13,7 +13,7 @@ plotxmin <- min(xc1[,1], xc2[,1]) - 1
 plotymin <- min(xc1[,2], xc2[,2]) - 1
 plotxmax <- max(xc1[,1], xc2[,1]) + 1
 plotymax <- max(xc1[,2], xc2[,2]) + 1
-plot(c(), type="n", xlab = "x", ylab = "y", xlim=c(plotxmin, plotxmax), ylim = c(plotymin, plotymax), main="Ëèíåéíûé äèñêðèìèíàò Ôèøåðà")
+plot(c(), type="n", xlab = "x", ylab = "y", xlim=c(plotxmin, plotxmax), ylim = c(plotymin, plotymax), main="Ð›Ð¸Ð½ÐµÐ¹Ð½Ñ‹Ð¹ Ð´Ð¸ÑÐºÑ€Ð¸Ð¼Ð¸Ð½Ð°Ñ‚ Ð¤Ð¸ÑˆÐµÑ€Ð°")
 
 colors <- c("magenta", "cyan")
 points(xc1, pch=21, col=colors[1], bg=colors[1])
