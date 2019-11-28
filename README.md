@@ -18,5 +18,6 @@
 
 ## Байесовские алгоритмы
 1. ### [Линии уровня](/lab5) (**[shiny](https://skycolor.shinyapps.io/ML0BayesLevelLines/)**)
+1. ### [Наивный байесовский классификатор](/lab6) (**[shiny](https://skycolor.shinyapps.io/ML0NaiveBayes/)**)
 1. ### [Подстановочный (plug-in) алгоритм](/lab7) (**[shiny](https://skycolor.shinyapps.io/ML0PlugInAlgo/)**)
 1. ### [Линейный дискриминант Фишера (LDF)](/lab8) (**[shiny](https://skycolor.shinyapps.io/ML0LDF/)**)
