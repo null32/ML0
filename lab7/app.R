@@ -1,8 +1,6 @@
 library(shiny)
 library(MASS)
 
-library(shiny)
-
 ui <- fluidPage(
   tags$head(
     tags$style(HTML("
@@ -18,6 +16,7 @@ ui <- fluidPage(
     
     # input
     sidebarPanel(
+      actionButton("updateX", "Обновить выборки"),
       wellPanel(
         tags$h2("Первый класс", style = "color: darkmagenta"),
         sliderInput(
@@ -27,6 +26,14 @@ ui <- fluidPage(
           max = 500,
           value = 200,
           step = 50
+        ),
+        sliderInput(
+          inputId = "pr1",
+          label = "Значиомсть",
+          min = 0.001,
+          max = 10,
+          value = 1,
+          step = 0.1
         ),
         sliderInput(
           inputId = "sigma1a",
@@ -68,6 +75,14 @@ ui <- fluidPage(
           max = 500,
           value = 200,
           step = 50
+        ),
+        sliderInput(
+          inputId = "pr2",
+          label = "Значиомсть",
+          min = 0.001,
+          max = 10,
+          value = 1,
+          step = 0.1
         ),
         sliderInput(
           inputId = "sigma2a",
@@ -196,10 +211,16 @@ getFunc <- function(sigma1, mu1, sigma2, mu2) {
   
   return(func)
 }
+getConst <- function(x1, x2, l1, l2) {
+  n1 <- dim(x1)[1]
+  n2 <- dim(x2)[1]
+  p1 <- n1 / (n1+n2)
+  p2 <- n2 / (n1+n2)
+  return( log((l2*p2)/(l1*p1)) )
+}
 
 server <- function(input, output) {
-  output$plot = renderPlot({
-    
+  getData <- eventReactive(input$updateX, {
     n <- input$n
     m <- input$m
     
@@ -211,6 +232,23 @@ server <- function(input, output) {
     
     xc1 <- mvrnorm(n=n, mu = mu1i, Sigma = sigma1i)
     xc2 <- mvrnorm(n=m, mu = mu2i, Sigma = sigma2i)
+    
+    return (c(n, m, xc1, xc2))
+  })
+  
+  output$plot = renderPlot({
+    sigma1i <- matrix(c(input$sigma1a, 0, 0, input$sigma1b), 2, 2)
+    sigma2i <- matrix(c(input$sigma2a, 0, 0, input$sigma2b), 2, 2)
+    
+    mu1i <- c(input$mu1a, input$mu1b)
+    mu2i <- c(input$mu2a, input$mu1b)
+    
+    dataX <- getData()
+    xc1 <- matrix(dataX[seq(3, dataX[1]*2+2)], dataX[1], 2)
+    xc2 <- matrix(dataX[-seq(1, dataX[1]*2+2)], dataX[2], 2)
+    
+    prior1 <- input$pr1
+    prior2 <- input$pr2
     
     plotxmin <- min(xc1[,1], xc2[,1]) - 1
     plotymin <- min(xc1[,2], xc2[,2]) - 1
@@ -237,7 +275,7 @@ server <- function(input, output) {
     points(xc2, pch=21, col=colors[2], bg=colors[2])
     
     # draw line
-    contour(x, y, z, levels = 0, add = TRUE, drawlabels = TRUE, lwd = 2.5)
+    contour(x, y, z, levels = getConst(xc2, xc1, prior2, prior1), add = TRUE, drawlabels = TRUE, lwd = 2.5)
     
     # fill table
     output$sigma1ia = renderText(sigma1i[1,1])

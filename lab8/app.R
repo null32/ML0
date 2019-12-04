@@ -93,6 +93,10 @@ ui <- fluidPage(
         height =  "600px",
       ),
       fluidRow(
+        column(1, h4("Риск:")),
+        column(1, h4(textOutput("risk")))
+      ),
+      fluidRow(
         column(2, ""),
         column(2, h3("Входные")),
         column(1, ""),
@@ -183,6 +187,16 @@ getFunc <- function(sigma1, mu1, mu2) {
   return(func)
 }
 
+getRisk <- function(mu1, mu2, sigma) {
+  mah <- (mu1 - mu2) %*% solve(sigma) %*% t(mu1 - mu2)
+  # print(mah)
+  mah <- mah * -0.5
+  res <- gausian(mah, 0, 1)
+}
+gausian <- function(x, M, D){
+  return( (1/(D*sqrt(2*pi))) * exp(-1 * ((x - M)^2)/(2*D^2)) )
+}
+
 server <- function(input, output) {
   output$plot = renderPlot({
     
@@ -239,6 +253,8 @@ server <- function(input, output) {
     output$mu2ib = renderText(mu2i[2])
     output$mu2oa = renderText(sprintf("%.3f", mu2[1]))
     output$mu2ob = renderText(sprintf("%.3f", mu2[2]))
+    
+    output$risk = renderText(getRisk(mu1, mu2, sigma1))
   })
 }
 
