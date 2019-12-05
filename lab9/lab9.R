@@ -1,3 +1,5 @@
+library("MASS")
+
 # Для нормализации выборки
 normaliData <- function(x) {
   n <- dim(x)[1]
@@ -14,28 +16,38 @@ normaliData <- function(x) {
 drawLine <- function(w, xmin = -2, xmax = -2, ...) {
   x <- seq(xmin, xmax, len = 100)
   f <- function(x) {
-    return( x*w[1]/w[2] - w[3]/w[2] )
+    return( - x*w[1]/w[2] + w[3]/w[2] )
   }
   y <- f(x)
   lines(x, y, type="l", ...)
 }
 
 # Квадратичная функция потерь для ADALINE
-lossAda <- function(xi, yi, w) {
+adaLoss <- function(xi, yi, w) {
   mi <- c(crossprod(w, xi)) * yi
   l <- (mi - 1)^2
   return(l)
 }
 # её производная для град. спуска
-lossAdaDer <- function(xi, yi, w) {
+adaUpd <- function(xi, yi, w, eta) {
   wx <- c(crossprod(w, xi))
   #ld <- 2 * (wx - yi) * xi
   ld <- (wx - yi) * xi
-  return(ld)
+  nextW <- w - eta * ld
+  return(nextW)
+}
+
+hebbLoss <- function(xi, yi, w) {
+  mi <- c(crossprod(w, xi)) * yi
+  return (max(-mi, 0))
+}
+hebbUpd <- function(xi, yi, w, eta) {
+  nextW <- w + eta * yi * xi
+  return (nextW)
 }
 
 ## Стохастический градиент для ADALINE
-sgada <- function(xl, eta = 1, lambda = 1/6, eps = 1e-5, ...) {
+stgrad <- function(xl, eta = 1, lambda = 1/6, eps = 1e-5, loss, upd, ...) {
   l <- dim(xl)[1]
   n <- dim(xl)[2] - 1
   w <- rep(0.5, n)
@@ -48,7 +60,7 @@ sgada <- function(xl, eta = 1, lambda = 1/6, eps = 1e-5, ...) {
     xi <- xl[i, 1:n]
     yi <- xl[i, n+1]
     
-    Q <- Q + lossAda(xi, yi, w)
+    Q <- Q + loss(xi, yi, w)
   }
   
   iter <- 0
@@ -65,6 +77,7 @@ sgada <- function(xl, eta = 1, lambda = 1/6, eps = 1e-5, ...) {
       yi <- xl[i, n + 1]
       
       mis[i] <- crossprod(w, xi) * yi
+      #mis[i] <- adaLoss(xi, yi, w)
     }
     
     errorIndexes <- which(mis <= 0)
@@ -76,9 +89,9 @@ sgada <- function(xl, eta = 1, lambda = 1/6, eps = 1e-5, ...) {
     xi <- xl[i, 1:n]
     yi <- xl[i, n + 1]
     
-    ex <- lossAda(xi, yi, w)
+    ex <- loss(xi, yi, w)
     
-    w <- w - eta * lossAdaDer(xi, yi, w)
+    w <- upd(xi, yi, w, eta)
     
     Q <- (1 - lambda) * Q + lambda * ex
     # достигли стабилизация Q
@@ -95,8 +108,17 @@ sgada <- function(xl, eta = 1, lambda = 1/6, eps = 1e-5, ...) {
 }
 
 colors = c("magenta", "cyan")
-n <- 300
-m <- 300
+n <- 100
+m <- 100
+
+sigma1 <- matrix(c(1, 0, 0, 1), 2, 2)
+sigma2 <- matrix(c(1, 0, 0, 1), 2, 2)
+
+mu1 <- c(5, 10)
+mu2 <- c(15, 10)
+
+xc1 <- mvrnorm(n=n, mu = mu1, Sigma = sigma1)
+xc2 <- mvrnorm(n=m, mu = mu2, Sigma = sigma2)
 
 dat <- rbind(xc1, xc2)
 dat <- normaliData(dat)
@@ -109,54 +131,13 @@ plotxmin <- min(dat[,1], dat[,1]) - 0.3
 plotxmax <- max(dat[,1], dat[,1]) + 0.3
 plotymin <- min(dat[,2], dat[,2]) - 0.5
 plotymax <- max(dat[,2], dat[,2]) + 0.5
-plot(c(), type="n", xlab = "x", ylab = "y", xlim=c(plotxmin, plotxmax), ylim = c(plotymin, plotymax), main="ADALINE")
+plot(c(), type="n", xlab = "x", ylab = "y", xlim=c(plotxmin, plotxmax), ylim = c(plotymin, plotymax), main="ADALINE & HEBB")
 
 points(dat, pch=21, col=colors[ifelse(dat[,4] == -1, 1, 2)], bg=colors[ifelse(dat[,4] == -1, 1, 2)])
 
-resW <- sgada(dat, lwd = 1, col = 'gray', xmin = plotxmin, xmax = plotxmax)
+# adaline
+resW <- stgrad(dat, loss = adaLoss, upd = adaUpd, lwd = 1, col = 'lightgreen', xmin = plotxmin, xmax = plotxmax)
 drawLine(resW, lwd = 2, col = 'green', xmin = plotxmin, xmax = plotxmax)
-
-## Функция потерь для правила Хэбба
-lossPerceptron <- function(x) {
-  return (max(-x, 0))
-}
-## Стохастический градиент с правилом Хебба
-sg.Hebb <- function(xl, eta = 0.1, lambda = 1/6)
-{
-  l <- dim(xl)[1]
-  n <- dim(xl)[2] - 1
-  w <- c(1/2, 1/2, 1/2)
-  iterCount <- 0
-  ## initialize Q
-  Q <- 0
-  for (i in 1:l) {
-    ## calculate the scalar product <w,x>
-    wx <- sum(w * xl[i, 1:n])
-    ## calculate a margin
-    margin <- wx * xl[i, n + 1]
-    # Q <- Q + lossQuad(margin)
-    Q <- Q + lossPerceptron(margin)
-  }
-  repeat {
-    ## Поиск ошибочных объектов
-    margins <- array(dim = l)
-    for (i in 1:l) {
-      xi <- xl[i, 1:n]
-      yi <- xl[i, n + 1]
-      margins[i] <- crossprod(w, xi) * yi
-    }
-    ## выбрать ошибочные объекты
-    errorIndexes <- which(margins <= 0)
-    if (length(errorIndexes) > 0) {
-      # выбрать случайный ошибочный объект
-      i <- sample(errorIndexes, 1)
-      iterCount <- iterCount + 1
-      xi <- xl[i, 1:n]
-      yi <- xl[i, n + 1]
-      w <- w + eta * yi * xi
-    } else {
-      break
-    }
-  }
-  return (w)
-}
+# hebb
+resW <- stgrad(dat, loss = hebbLoss, upd = hebbUpd, lwd = 1, col = 'pink', xmin = plotxmin, xmax = plotxmax)
+drawLine(resW, lwd = 2, col = 'red', xmin = plotxmin, xmax = plotxmax)
