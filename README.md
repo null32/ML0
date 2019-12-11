@@ -21,3 +21,6 @@
 1. ### [Наивный байесовский классификатор](/lab6) (**[shiny](https://skycolor.shinyapps.io/ML0NaiveBayes/)**)
 1. ### [Подстановочный (plug-in) алгоритм](/lab7) (**[shiny](https://skycolor.shinyapps.io/ML0PlugInAlgo/)**)
 1. ### [Линейный дискриминант Фишера (LDF)](/lab8) (**[shiny](https://skycolor.shinyapps.io/ML0LDF/)**)
+
+## Линейные алгоритмы
+1. ### [ADALINE и правило Хебба](/lab9) (**[shiny](https://skycolor.shinyapps.io/ML0ADALINE/)**)

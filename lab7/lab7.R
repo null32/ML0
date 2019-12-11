@@ -2,10 +2,10 @@ library("MASS")
 
 n <- 300
 sigma1 <- matrix(c(3, 0, 0, 10), 2, 2)
-sigma2 <- matrix(c(20, 0, 0, 5), 2, 2)
+sigma2 <- matrix(c(15, 0, 0, 5), 2, 2)
 
-mu1 <- c(10, 15)
-mu2 <- c(15, 15)
+mu1 <- c(5, 15)
+mu2 <- c(20, 15)
 
 xc1 <- mvrnorm(n=n, mu = mu1, Sigma = sigma1)
 xc2 <- mvrnorm(n=n, mu = mu2, Sigma = sigma2)

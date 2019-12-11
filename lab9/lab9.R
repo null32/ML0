@@ -28,7 +28,7 @@ adaLoss <- function(xi, yi, w) {
   l <- (mi - 1)^2
   return(l)
 }
-# её производная для град. спуска
+# 
 adaUpd <- function(xi, yi, w, eta) {
   wx <- c(crossprod(w, xi))
   #ld <- 2 * (wx - yi) * xi
@@ -37,16 +37,18 @@ adaUpd <- function(xi, yi, w, eta) {
   return(nextW)
 }
 
+# Кусочно линейная для Хебба
 hebbLoss <- function(xi, yi, w) {
   mi <- c(crossprod(w, xi)) * yi
   return (max(-mi, 0))
 }
+# 
 hebbUpd <- function(xi, yi, w, eta) {
   nextW <- w + eta * yi * xi
   return (nextW)
 }
 
-## Стохастический градиент для ADALINE
+## Стохастический градиент
 stgrad <- function(xl, eta = 1, lambda = 1/6, eps = 1e-5, loss, upd, ...) {
   l <- dim(xl)[1]
   n <- dim(xl)[2] - 1
@@ -115,7 +117,7 @@ sigma1 <- matrix(c(1, 0, 0, 1), 2, 2)
 sigma2 <- matrix(c(1, 0, 0, 1), 2, 2)
 
 mu1 <- c(5, 10)
-mu2 <- c(15, 10)
+mu2 <- c(11, 10)
 
 xc1 <- mvrnorm(n=n, mu = mu1, Sigma = sigma1)
 xc2 <- mvrnorm(n=m, mu = mu2, Sigma = sigma2)
