@@ -125,6 +125,7 @@ stgrad <- function(xl, eta = 1, lambda = 1/6, eps = 1e-5, loss, upd, ...) {
 ![](example.png)
 
 ## Зависимость Q от шага итерации
+
 ADALINE | правило Хебба
-:-------:-------------:
+:------:|:------------:
 ![](adaQ.png) | ![](hebbQ.png)
