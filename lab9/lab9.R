@@ -48,6 +48,21 @@ hebbUpd <- function(xi, yi, w, eta) {
   return (nextW)
 }
 
+# Логистическая регрессия
+logregLoss <- function(xi, yi, w) {
+  mi <- c(crossprod(w, xi)) * yi
+  l <- log2(1+exp(-mi))
+  return(l)
+}
+#
+logressUpd <- function(xi, yi, w, eta) {
+  sigmoid <- function(z) {
+    return(1 / (1 + exp(-z)))
+  }
+  nextW <- w + eta * xi * yi * sigmoid(-yi * c(crossprod(w, xi)))
+  return (nextW)
+}
+
 ## Стохастический градиент
 stgrad <- function(xl, eta = 1, lambda = 1/6, eps = 1e-5, loss, upd, ...) {
   l <- dim(xl)[1]
@@ -143,3 +158,6 @@ drawLine(resW, lwd = 2, col = 'green', xmin = plotxmin, xmax = plotxmax)
 # hebb
 resW <- stgrad(dat, loss = hebbLoss, upd = hebbUpd, lwd = 1, col = 'pink', xmin = plotxmin, xmax = plotxmax)
 drawLine(resW, lwd = 2, col = 'red', xmin = plotxmin, xmax = plotxmax)
+# logress
+resW <- stgrad(dat, loss = logregLoss, upd = logressUpd, lwd = 1, col = 'lightblue', xmin = plotxmin, xmax = plotxmax)
+drawLine(resW, lwd = 2, col = 'blue', xmin = plotxmin, xmax = plotxmax)
