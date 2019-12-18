@@ -71,6 +71,9 @@ stgrad <- function(xl, eta = 1, lambda = 1/6, eps = 1e-5, loss, upd, ...) {
   
   Q <- 0
   Qprev <- Q
+  Qhist <- rep(NA, 1000)
+  Whist <- matrix(NA, 1000, n)
+  isIterMax <- FALSE
   
   # Начальное значение Q
   for (i in seq(l)) {
@@ -85,6 +88,7 @@ stgrad <- function(xl, eta = 1, lambda = 1/6, eps = 1e-5, loss, upd, ...) {
     # мало ли, бесконечный цикл может быть
     iter <- iter + 1
     if (iter > 1000) {
+      isIterMax <- TRUE
       break
     }
     
@@ -94,7 +98,6 @@ stgrad <- function(xl, eta = 1, lambda = 1/6, eps = 1e-5, loss, upd, ...) {
       yi <- xl[i, n + 1]
       
       mis[i] <- crossprod(w, xi) * yi
-      #mis[i] <- adaLoss(xi, yi, w)
     }
     
     errorIndexes <- which(mis <= 0)
@@ -107,21 +110,31 @@ stgrad <- function(xl, eta = 1, lambda = 1/6, eps = 1e-5, loss, upd, ...) {
     yi <- xl[i, n + 1]
     
     ex <- loss(xi, yi, w)
-    
     w <- upd(xi, yi, w, eta)
     
     Q <- (1 - lambda) * Q + lambda * ex
+    Qhist[iter] <- Q
+    Whist[iter,] <- w
     # достигли стабилизация Q
     if (abs(Q - Qprev) < eps) {
       break
     }
     Qprev <- Q
     
-    drawLine(w, ...)
-    #Sys.sleep(0.5)
+    #drawLine(w, ...)
   }
   
-  return(w)
+  #print(Qhist[which(!is.na(Qhist))])
+  
+  if (isIterMax) {
+    w <- Whist[which.min(Qhist),]
+  }
+  return(function(i) {
+    if (i == 1) {
+      return(w)
+    }
+    return(Qhist)
+  })
 }
 
 colors = c("magenta", "cyan")
@@ -131,7 +144,7 @@ m <- 100
 sigma1 <- matrix(c(1, 0, 0, 1), 2, 2)
 sigma2 <- matrix(c(1, 0, 0, 1), 2, 2)
 
-mu1 <- c(5, 10)
+mu1 <- c(8, 10)
 mu2 <- c(11, 10)
 
 xc1 <- mvrnorm(n=n, mu = mu1, Sigma = sigma1)
@@ -153,11 +166,26 @@ plot(c(), type="n", xlab = "x", ylab = "y", xlim=c(plotxmin, plotxmax), ylim = c
 points(dat, pch=21, col=colors[ifelse(dat[,4] == -1, 1, 2)], bg=colors[ifelse(dat[,4] == -1, 1, 2)])
 
 # adaline
-resW <- stgrad(dat, loss = adaLoss, upd = adaUpd, lwd = 1, col = 'lightgreen', xmin = plotxmin, xmax = plotxmax)
-drawLine(resW, lwd = 2, col = 'green', xmin = plotxmin, xmax = plotxmax)
+resAda <- stgrad(dat, loss = adaLoss, upd = adaUpd, lwd = 1, col = 'lightgreen', xmin = plotxmin, xmax = plotxmax)
+drawLine(resAda(1), lwd = 2, col = 'green', xmin = plotxmin, xmax = plotxmax)
 # hebb
+<<<<<<< HEAD
 resW <- stgrad(dat, loss = hebbLoss, upd = hebbUpd, lwd = 1, col = 'pink', xmin = plotxmin, xmax = plotxmax)
 drawLine(resW, lwd = 2, col = 'red', xmin = plotxmin, xmax = plotxmax)
 # logress
 resW <- stgrad(dat, loss = logregLoss, upd = logressUpd, lwd = 1, col = 'lightblue', xmin = plotxmin, xmax = plotxmax)
 drawLine(resW, lwd = 2, col = 'blue', xmin = plotxmin, xmax = plotxmax)
+=======
+resHebb <- stgrad(dat, loss = hebbLoss, upd = hebbUpd, lwd = 1, col = 'pink', xmin = plotxmin, xmax = plotxmax)
+drawLine(resHebb(1), lwd = 2, col = 'red', xmin = plotxmin, xmax = plotxmax)
+
+#Sys.sleep(5)
+#l <- resAda(2)
+#b <- length(which(!is.na(l)))
+#plot(seq(b), l, type='l')
+
+#Sys.sleep(5)
+#l <- resHebb(2)
+#b <- length(which(!is.na(l)))
+#plot(seq(b), l, type='l')
+>>>>>>> 59d863689f9031d4c58fe770fb0e00bac5bf6b3a
