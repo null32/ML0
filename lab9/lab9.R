@@ -64,7 +64,7 @@ logressUpd <- function(xi, yi, w, eta) {
 }
 
 ## Стохастический градиент
-stgrad <- function(xl, eta = 1, lambda = 1/6, eps = 1e-5, loss, upd, ...) {
+stgrad <- function(xl, eta = 1, lambda = 1/6, eps = 1e-5, loss, upd, iterBased = 0, ...) {
   l <- dim(xl)[1]
   n <- dim(xl)[2] - 1
   w <- rep(0.5, n)
@@ -87,7 +87,7 @@ stgrad <- function(xl, eta = 1, lambda = 1/6, eps = 1e-5, loss, upd, ...) {
   repeat {
     # мало ли, бесконечный цикл может быть
     iter <- iter + 1
-    if (iter > 1000) {
+    if ((iterBased == 0 && iter > 1000) || (iterBased > 0 && iter > iterBased)) {
       isIterMax <- TRUE
       break
     }
@@ -101,11 +101,11 @@ stgrad <- function(xl, eta = 1, lambda = 1/6, eps = 1e-5, loss, upd, ...) {
     }
     
     errorIndexes <- which(mis <= 0)
-    if (length(errorIndexes) == 0) {
+    if (length(errorIndexes) == 0 && iterBased == 0) {
       break
     }
     
-    i <- sample(errorIndexes, 1)
+    i <- ifelse(length(errorIndexes) > 0, sample(errorIndexes, 1), sample(seq(l), 1))
     xi <- xl[i, 1:n]
     yi <- xl[i, n + 1]
     
@@ -116,7 +116,7 @@ stgrad <- function(xl, eta = 1, lambda = 1/6, eps = 1e-5, loss, upd, ...) {
     Qhist[iter] <- Q
     Whist[iter,] <- w
     # достигли стабилизация Q
-    if (abs(Q - Qprev) < eps) {
+    if (abs(Q - Qprev) < eps && iterBased == 0) {
       break
     }
     Qprev <- Q
@@ -168,24 +168,13 @@ points(dat, pch=21, col=colors[ifelse(dat[,4] == -1, 1, 2)], bg=colors[ifelse(da
 # adaline
 resAda <- stgrad(dat, loss = adaLoss, upd = adaUpd, lwd = 1, col = 'lightgreen', xmin = plotxmin, xmax = plotxmax)
 drawLine(resAda(1), lwd = 2, col = 'green', xmin = plotxmin, xmax = plotxmax)
+
 # hebb
-<<<<<<< HEAD
-resW <- stgrad(dat, loss = hebbLoss, upd = hebbUpd, lwd = 1, col = 'pink', xmin = plotxmin, xmax = plotxmax)
-drawLine(resW, lwd = 2, col = 'red', xmin = plotxmin, xmax = plotxmax)
-# logress
-resW <- stgrad(dat, loss = logregLoss, upd = logressUpd, lwd = 1, col = 'lightblue', xmin = plotxmin, xmax = plotxmax)
-drawLine(resW, lwd = 2, col = 'blue', xmin = plotxmin, xmax = plotxmax)
-=======
 resHebb <- stgrad(dat, loss = hebbLoss, upd = hebbUpd, lwd = 1, col = 'pink', xmin = plotxmin, xmax = plotxmax)
 drawLine(resHebb(1), lwd = 2, col = 'red', xmin = plotxmin, xmax = plotxmax)
 
-#Sys.sleep(5)
-#l <- resAda(2)
-#b <- length(which(!is.na(l)))
-#plot(seq(b), l, type='l')
+# logress
+resLogress <- stgrad(dat, loss = logregLoss, upd = logressUpd, lwd = 1, col = 'lightblue', xmin = plotxmin, xmax = plotxmax)
+drawLine(resLogress(1), lwd = 2, col = 'blue', xmin = plotxmin, xmax = plotxmax)
 
-#Sys.sleep(5)
-#l <- resHebb(2)
-#b <- length(which(!is.na(l)))
-#plot(seq(b), l, type='l')
->>>>>>> 59d863689f9031d4c58fe770fb0e00bac5bf6b3a
+

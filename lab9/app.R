@@ -11,7 +11,7 @@ ui <- fluidPage(
     )
   ),
   
-  titlePanel("ADALINE & HEBB"),
+  titlePanel("ADALINE & HEBB & LOGRESS"),
   sidebarLayout(
     
     # input
@@ -19,6 +19,7 @@ ui <- fluidPage(
       wellPanel(
         checkboxInput("midada", "Промежуточные линии для ADALINE", FALSE),
         checkboxInput("midhebb", "Промежуточные линии для HEBB", FALSE),
+        checkboxInput("midlogress", "Промежуточные линии для LOGRESS", FALSE),
         tags$h2("Первый класс", style = "color: darkmagenta"),
         sliderInput(
           inputId = "n",
@@ -108,7 +109,20 @@ ui <- fluidPage(
         height =  "600px",
       ),
       tags$h2("ADALINE", style = "color: green"),
+      plotOutput(
+        outputId = "q1",
+        height =  "300px",
+      ),
       tags$h2("HEBB", style = "color: red"),
+      plotOutput(
+        outputId = "q2",
+        height =  "300px",
+      ),
+      tags$h2("LOGISTIC REGRESSION", style = "color: blue"),
+      plotOutput(
+        outputId = "q3",
+        height =  "300px",
+      ),
     )
   )
 )
@@ -157,14 +171,31 @@ hebbUpd <- function(xi, yi, w, eta) {
   return (nextW)
 }
 
+logregLoss <- function(xi, yi, w) {
+  mi <- c(crossprod(w, xi)) * yi
+  l <- log2(1+exp(-mi))
+  return(l)
+}
+logressUpd <- function(xi, yi, w, eta) {
+  sigmoid <- function(z) {
+    return(1 / (1 + exp(-z)))
+  }
+  nextW <- w + eta * xi * yi * sigmoid(-yi * c(crossprod(w, xi)))
+  return (nextW)
+}
+
+
 ## Стохастический градиент
-stgrad <- function(xl, eta = 1, lambda = 1/6, eps = 1e-5, midlines = TRUE, loss, upd, ...) {
+stgrad <- function(xl, eta = 1, lambda = 1/6, eps = 1e-5, loss, upd, midlines = FALSE, iterBased = 0, ...) {
   l <- dim(xl)[1]
   n <- dim(xl)[2] - 1
   w <- rep(0.5, n)
   
   Q <- 0
   Qprev <- Q
+  Qhist <- rep(NA, 1000)
+  Whist <- matrix(NA, 1000, n)
+  isIterMax <- FALSE
   
   # Начальное значение Q
   for (i in seq(l)) {
@@ -178,7 +209,8 @@ stgrad <- function(xl, eta = 1, lambda = 1/6, eps = 1e-5, midlines = TRUE, loss,
   repeat {
     # мало ли, бесконечный цикл может быть
     iter <- iter + 1
-    if (iter > 1000) {
+    if ((iterBased == 0 && iter > 1000) || (iterBased > 0 && iter > iterBased)) {
+      isIterMax <- TRUE
       break
     }
     
@@ -188,34 +220,45 @@ stgrad <- function(xl, eta = 1, lambda = 1/6, eps = 1e-5, midlines = TRUE, loss,
       yi <- xl[i, n + 1]
       
       mis[i] <- crossprod(w, xi) * yi
-      #mis[i] <- adaLoss(xi, yi, w)
     }
     
     errorIndexes <- which(mis <= 0)
-    if (length(errorIndexes) == 0) {
+    if (length(errorIndexes) == 0 && iterBased == 0) {
       break
     }
     
-    i <- sample(errorIndexes, 1)
+    i <- ifelse(length(errorIndexes) > 0, sample(errorIndexes, 1), sample(seq(l), 1))
     xi <- xl[i, 1:n]
     yi <- xl[i, n + 1]
     
     ex <- loss(xi, yi, w)
-    
     w <- upd(xi, yi, w, eta)
     
     Q <- (1 - lambda) * Q + lambda * ex
+    Qhist[iter] <- Q
+    Whist[iter,] <- w
     # достигли стабилизация Q
-    if (abs(Q - Qprev) < eps) {
+    if (abs(Q - Qprev) < eps && iterBased == 0) {
       break
     }
     Qprev <- Q
+    
     if (midlines) {
       drawLine(w, ...)
     }
   }
   
-  return(w)
+  #print(Qhist[which(!is.na(Qhist))])
+  
+  if (isIterMax) {
+    w <- Whist[which.min(Qhist),]
+  }
+  return(function(i) {
+    if (i == 1) {
+      return(w)
+    }
+    return(Qhist)
+  })
 }
 
 server <- function(input, output) {
@@ -252,9 +295,28 @@ server <- function(input, output) {
     resW1 <- stgrad(dat, loss = adaLoss, upd = adaUpd, lwd = 1, col = 'lightgreen', midlines = input$midada, xmin = plotxmin, xmax = plotxmax)
     # hebb
     resW2 <- stgrad(dat, loss = hebbLoss, upd = hebbUpd, lwd = 1, col = 'pink', midlines = input$midhebb, xmin = plotxmin, xmax = plotxmax)
+    # logress
+    resW3 <- stgrad(dat, loss = logregLoss, upd = logressUpd, lwd = 1, col = 'lightblue', midlines = input$midlogress, xmin = plotxmin, xmax = plotxmax)
     
-    drawLine(resW1, lwd = 2, col = 'red', xmin = plotxmin, xmax = plotxmax)
-    drawLine(resW2, lwd = 2, col = 'green', xmin = plotxmin, xmax = plotxmax)
+    drawLine(resW1(1), lwd = 2, col = 'red', xmin = plotxmin, xmax = plotxmax)
+    drawLine(resW2(1), lwd = 2, col = 'green', xmin = plotxmin, xmax = plotxmax)
+    drawLine(resW3(1), lwd = 2, col = 'blue', xmin = plotxmin, xmax = plotxmax)
+    
+    output$q1 = renderPlot({
+      q <- resW1(2)
+      x <- seq(length(q))
+      plot(x, q, type='l', lwd = 1)
+    })
+    output$q2 = renderPlot({
+      q <- resW2(2)
+      x <- seq(length(q))
+      plot(x, q, type='l', lwd = 1)
+    })
+    output$q3 = renderPlot({
+      q <- resW3(2)
+      x <- seq(length(q))
+      plot(x, q, type='l', lwd = 1)
+    })
   })
 }
 
