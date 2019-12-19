@@ -161,20 +161,40 @@ plotxmin <- min(dat[,1], dat[,1]) - 0.3
 plotxmax <- max(dat[,1], dat[,1]) + 0.3
 plotymin <- min(dat[,2], dat[,2]) - 0.5
 plotymax <- max(dat[,2], dat[,2]) + 0.5
-plot(c(), type="n", xlab = "x", ylab = "y", xlim=c(plotxmin, plotxmax), ylim = c(plotymin, plotymax), main="ADALINE & HEBB")
+plot(c(), type="n", xlab = "x", ylab = "y", xlim=c(plotxmin, plotxmax), ylim = c(plotymin, plotymax), main="ADALINE & HEBB & LOGISTIC REGRESSION")
 
 points(dat, pch=21, col=colors[ifelse(dat[,4] == -1, 1, 2)], bg=colors[ifelse(dat[,4] == -1, 1, 2)])
 
 # adaline
-resAda <- stgrad(dat, loss = adaLoss, upd = adaUpd, lwd = 1, col = 'lightgreen', xmin = plotxmin, xmax = plotxmax)
-drawLine(resAda(1), lwd = 2, col = 'green', xmin = plotxmin, xmax = plotxmax)
+#resAda <- stgrad(dat, loss = adaLoss, upd = adaUpd, lwd = 1, col = 'lightgreen', xmin = plotxmin, xmax = plotxmax)
+#drawLine(resAda(1), lwd = 2, col = 'green', xmin = plotxmin, xmax = plotxmax)
 
 # hebb
-resHebb <- stgrad(dat, loss = hebbLoss, upd = hebbUpd, lwd = 1, col = 'pink', xmin = plotxmin, xmax = plotxmax)
-drawLine(resHebb(1), lwd = 2, col = 'red', xmin = plotxmin, xmax = plotxmax)
+#resHebb <- stgrad(dat, loss = hebbLoss, upd = hebbUpd, lwd = 1, col = 'pink', xmin = plotxmin, xmax = plotxmax)
+#drawLine(resHebb(1), lwd = 2, col = 'red', xmin = plotxmin, xmax = plotxmax)
 
 # logress
 resLogress <- stgrad(dat, loss = logregLoss, upd = logressUpd, lwd = 1, col = 'lightblue', xmin = plotxmin, xmax = plotxmax)
 drawLine(resLogress(1), lwd = 2, col = 'blue', xmin = plotxmin, xmax = plotxmax)
 
+w <- resLogress(1)
 
+prob <- function(x, y, w) {
+  sigmoid <- function(z) {
+    return (1 / (1 + exp(-z)))
+  }
+  return ( sigmoid(c(crossprod(w, c(x, y, -1))) * -1) - sigmoid(c(crossprod(w, c(x, y, -1))) * 1) )
+}
+
+library(plotrix)
+for (i in seq(len=50, from = plotxmin, to = plotxmax)) {
+  for (j in seq(len=50, from = plotymin, to = plotymax)) {
+    pp <- prob(i, j, w)
+    if (pp < 0) {
+      ca <- adjustcolor(colors[2], alpha.f = -pp)
+    } else {
+      ca <- adjustcolor(colors[1], alpha.f = pp)
+    }
+    draw.circle(i, j, radius = 0.005, col = ca, border = ca)
+  }
+}
