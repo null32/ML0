@@ -1,5 +1,6 @@
 library("MASS")
 library("kernlab")
+library("ROCR")
 
 colors = c("magenta", "cyan")
 n <- 100
@@ -8,8 +9,8 @@ m <- 100
 sigma1 <- matrix(c(1, 0, 0, 1), 2, 2)
 sigma2 <- matrix(c(1, 0, 0, 1), 2, 2)
 
-mu1 <- c(5, 10)
-mu2 <- c(12, 10)
+mu1 <- c(8, 10)
+mu2 <- c(10, 10)
 
 xc1 <- mvrnorm(n=n, mu = mu1, Sigma = sigma1)
 xc2 <- mvrnorm(n=m, mu = mu2, Sigma = sigma2)
@@ -26,15 +27,16 @@ plot(c(), type="n", xlab = "x", ylab = "y", xlim=c(plotxmin, plotxmax), ylim = c
 points(dat, pch=21, col=colors[ifelse(dat[,3] == -1, 1, 2)], bg=colors[ifelse(dat[,3] == -1, 1, 2)])
 
 svp <- ksvm(dat[,1:2], dat[,3], type = "C-svc", kernel = "vanilladot", C=100, scaled=c())
-#plot(svp, data = dat[,1:2])
 
-#alpha	-- The resulting support vectors, (alpha vector) (possibly scaled).
-#alphaindex	-- The index of the resulting support vectors in the data matrix. Note that this index refers to the pre-processed data (after the possible effect of na.omit and subset)
-#coef	-- The corresponding coefficients times the training labels.
-#b -- The negative intercept.
-#nSV -- The number of Support Vectors
-#obj -- The value of the objective function. In case of one-against-one classification this is a vector of values
-#error -- Training error
-#cross -- Cross validation error, (when cross > 0)
-#prob.model -- Contains the width of the Laplacian fitted on the residuals in case of regression, or the parameters of the sigmoid fitted on the decision values in case of classification.
+w<-colSums(svp@coef[[1]] * dat[svp@SVindex,][,1:2])
+b<-svp@b
 
+abline(b/w[2], -w[1]/w[2], lwd=2)
+abline((b-1)/w[2], -w[1]/w[2])
+abline((b+1)/w[2], -w[1]/w[2])
+
+ypredscore <- predict(svp, dat[,1:2], type = "decision")
+pred <- prediction(ypredscore, dat[,3])
+perf <- performance(pred, measure = "tpr", x.measure = "fpr")
+plot(perf)
+lines(c(0, 1), c(0, 1), col="red")
